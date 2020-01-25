@@ -12,14 +12,11 @@ import (
 )
 
 func main() {
+	setupLogging()
 	defer mongo.Close()
+
 	serverAddress := "0.0.0.0:4000"
 	log.Println("Server starting...")
-
-	logFormatter := new(log.TextFormatter)
-	logFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	logFormatter.FullTimestamp = true
-	log.SetFormatter(logFormatter)
 
 	apiRouter := router.NewRouter()
 	handler := cors.Default().Handler(apiRouter)
@@ -35,4 +32,11 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func setupLogging() {
+	logFormatter := new(log.TextFormatter)
+	logFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	logFormatter.FullTimestamp = true
+	log.SetFormatter(logFormatter)
 }
