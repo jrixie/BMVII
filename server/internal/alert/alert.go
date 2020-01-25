@@ -1,14 +1,14 @@
 package alert
 
 import (
-	"boilermakevii/api/internal/mongo"
 	"context"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
+	"boilermakevii/api/internal/mongo"
 
 	"github.com/MagicTheGathering/mtg-sdk-go"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Trigger defines a data structure for user-defined
