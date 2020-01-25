@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	_ "boilermakevii/api/internal/mongo"
 	"boilermakevii/api/internal/router"
 
 	"github.com/rs/cors"
