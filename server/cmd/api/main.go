@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "boilermakevii/api/internal/mongo"
+	"boilermakevii/api/internal/mongo"
 	"boilermakevii/api/internal/router"
 
 	"github.com/rs/cors"
@@ -12,6 +12,10 @@ import (
 )
 
 func main() {
+	defer mongo.Close()
+	serverAddress := "0.0.0.0:4000"
+	log.Println("Server starting...")
+
 	logFormatter := new(log.TextFormatter)
 	logFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	logFormatter.FullTimestamp = true
@@ -19,9 +23,6 @@ func main() {
 
 	apiRouter := router.NewRouter()
 	handler := cors.Default().Handler(apiRouter)
-
-	serverAddress := "0.0.0.0:4000"
-	log.Println("Server starting...")
 
 	server := &http.Server{
 		Handler:      handler,
