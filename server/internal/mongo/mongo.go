@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,6 +44,28 @@ func InsertUser(email string, card string) {
 		log.Fatal(err)
 	}
 	fmt.Println(res.InsertedID)
+}
+
+func GetUser(email string, card string) primitive.M {
+	collection := client.Database("mtg").Collection("users")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"email": email, "card": card})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	var result bson.M
+	for cur.Next(ctx) {
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// do something with result....
+	}
+	if err := cur.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return result
 }
 
 func Close() {
