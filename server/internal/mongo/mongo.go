@@ -35,21 +35,25 @@ func init() {
 	client = *lclient
 }
 
-func InsertUser(email string, card string) {
+func InsertUser(email string, card string, price float32, condition int,
+	threshold float32) {
 	// insert test user into database
 	collection := client.Database("mtg").Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	res, err := collection.InsertOne(ctx, bson.M{"email": email, "card": card})
+	res, err := collection.InsertOne(ctx, bson.M{"email": email, "cardID": card,
+		"price": price, "condition": condition, "threshold": threshold})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(res.InsertedID)
 }
 
-func GetUser(email string, card string) primitive.M {
+func GetUser(email string, card string, price float32, condition int,
+	threshold float32) primitive.M {
 	collection := client.Database("mtg").Collection("users")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	cur, err := collection.Find(ctx, bson.M{"email": email, "card": card})
+	cur, err := collection.Find(ctx, bson.M{"email": email, "cardID": card,
+		"price": price, "condition": condition, "threshold": threshold})
 	if err != nil {
 		log.Fatal(err)
 	}
