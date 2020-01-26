@@ -1,5 +1,8 @@
 # GoLand
 .idea/
 
+# Environment
+.env
+
 # Output
 bin/
