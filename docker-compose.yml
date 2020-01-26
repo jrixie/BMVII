@@ -5,8 +5,10 @@ services:
       context: ./client
       dockerfile: ./prod.dockerfile
     restart: always
+    env_file:
+      - ./client/.env
     ports:
-      - 8080:80
+      - 80:80
 
   server:
     build:

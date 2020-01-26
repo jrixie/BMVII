@@ -2,10 +2,9 @@ package alert
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"time"
 
 	"boilermakevii/api/internal/mongo"
@@ -26,13 +25,6 @@ type Trigger struct {
 	Condition PriceCondition `bson:"condition"`
 	Threshold float64        `bson:"threshold"`
 }
-type PostedTrigger struct {
-	Email     string         `json:"email"`
-	CardID    mtg.CardId     `json:"cardId"`
-	Price     float32        `json:"price"`
-	Condition PriceCondition `json:"condition"`
-	Threshold float32        `json:"threshold"`
-}
 
 // PriceCondition is a data type storing what condition to alert on.
 type PriceCondition int8
@@ -44,7 +36,7 @@ const (
 
 // init initializes the package when loaded.
 func init() {
-	gocron.Every(1).Day().At("05:05").Do(UpdateTriggers)
+	gocron.Every(30).Seconds().Do(UpdateTriggers)
 }
 
 // UpdateTriggers checks all entries from the DB, updates price information,
@@ -131,26 +123,37 @@ type ClientTrigger struct {
 	Email          string  `json:"email"`
 	CardName       string  `json:"cardName"`
 	PriceCondition int     `json:"priceCondition"`
-	PriceThreshold float32 `json:"priceThreshold"`
+	PriceThreshold float64 `json:"priceThreshold"`
 }
 
 // CreateTrigger handles a request to create a trigger in the DB.
 func CreateTrigger(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
 	data, _ := ioutil.ReadAll(r.Body)
 
 	var trigger ClientTrigger
-	json.Unmarshal(data, &trigger)
-
-	arr, err := mtg.NewQuery().Where(mtg.CardName, trigger.CardName).All()
-	var card mtg.Card
-	if len(arr) != 0 && err == nil {
-		card = *arr[0]
+	log.Info(data)
+	if err := json.Unmarshal(data, &trigger); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	t := Trigger{Email: trigger.Email, CardID: card.Id,
+	arr, err := mtg.NewQuery().Where(mtg.CardName, trigger.CardName).All()
+	if len(arr) == 0 && err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var card mtg.Card
+	card = *arr[0]
+
+	t := Trigger{
+		Email:     trigger.Email,
+		CardID:    card.Id,
 		Price:     0,
-		Condition: PriceCondition(trigger.PriceCondition), Threshold: trigger.PriceThreshold}
+		Condition: PriceCondition(trigger.PriceCondition),
+		Threshold: trigger.PriceThreshold,
+	}
 	t.insertTrigger()
 }

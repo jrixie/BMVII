@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,8 +15,8 @@ var Client mongo.Client
 
 // init initializes the package when loaded.
 func init() {
-	var dbUser string
-	var dbPass string
+	dbUser := os.Getenv("MONGO_USER")
+	dbPass := os.Getenv("MONGO_PASS")
 
 	lClient, err := mongo.NewClient(options.Client().ApplyURI(
 		fmt.Sprintf(

@@ -22,7 +22,7 @@
     </select>
 
     <select v-model="ineq">
-      <option v-for="option in ineqOptions" v-bind:key="option.value">
+      <option v-for="option in ineqOptions" v-bind:key="option.value" v-bind:value="option.value">
         {{ option.text }}
       </option>
     </select>
@@ -60,8 +60,8 @@ export default {
       ineq: '',
       setprice: '',
       ineqOptions: [
-        { text: '>', value: '0' },
-        { text: '<', value: '1' },
+        { text: '>', value: 0 },
+        { text: '<', value: 1 },
       ],
       errors: [],
       reg: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/
@@ -82,7 +82,7 @@ export default {
                     priceCondition: this.ineq,
                     priceThreshold: this.setprice
                 };
-                this.axios.post('http://localhost:4000/api/alert/create/', this.post)
+                this.axios.post(process.env.VUE_APP_API_HOST + '/api/alert/create/', this.post)
                 .then(function (response) {
                     currentObj.output = response.data;
                 })
