@@ -52,7 +52,7 @@ func GetPrices() {
 		log.Fatal(err)
 	}
 
-	dateString := strings.Split(time.Now().String(), " ")[0]
+	dateString := strings.Split(time.Now().AddDate(0, 0, -1).String(), " ")[0]
 
 	for id, obj := range rawData {
 		cardType := obj.(map[string]interface{})["prices"].(map[string]interface{})["paper"]
