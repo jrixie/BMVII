@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// main is the entry point for the server.
 func main() {
 	setupLogging()
 	defer mongo.Close()
@@ -43,6 +44,7 @@ func main() {
 	}
 }
 
+// setupLogging sets the time format for the logger.
 func setupLogging() {
 	logFormatter := new(log.TextFormatter)
 	logFormatter.TimestampFormat = "2006-01-02 15:04:05"

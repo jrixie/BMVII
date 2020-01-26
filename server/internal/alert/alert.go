@@ -1,18 +1,16 @@
 package alert
 
 import (
-	"boilermakevii/api/internal/mtgjson"
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/jasonlvhit/gocron"
-
 	"boilermakevii/api/internal/mongo"
-
-	"net/http"
+	"boilermakevii/api/internal/mtgjson"
 
 	"github.com/MagicTheGathering/mtg-sdk-go"
+	"github.com/jasonlvhit/gocron"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -42,6 +40,7 @@ const (
 	LessThan    PriceCondition = 1
 )
 
+// init initializes the package when loaded.
 func init() {
 	gocron.Every(1).Day().At("05:05").Do(UpdateTriggers)
 }
@@ -113,6 +112,7 @@ func getAllEntries() ([]Trigger, error) {
 	return entries, nil
 }
 
+// insertTrigger inserts a Trigger in the DB.
 func (t *Trigger) insertTrigger() {
 	collection := mongo.Client.Database("mtg").Collection("alerts")
 
@@ -124,8 +124,8 @@ func (t *Trigger) insertTrigger() {
 	}
 }
 
+// CreateTrigger handles a request to create a trigger in the DB.
 func CreateTrigger(w http.ResponseWriter, r *http.Request) {
-	// POST request
 	email := r.FormValue("email")
 	cardId := r.FormValue("cardId")
 	price := r.FormValue("price")

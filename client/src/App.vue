@@ -77,12 +77,12 @@ export default {
                 let currentObj = this;
                 this.post = {
                     email: this.email,
-                    cname: this.cname,
-                    ccond: this.ccond,
-                    ineq: this.ineq,
-                    setprice: this.setprice
+                    cardName: this.cname,
+                    cardCondition: this.ccond,
+                    priceCondition: this.ineq,
+                    priceThreshold: this.setprice
                 };
-                this.axios.post('http://localhost:8000/yourPostApi', this.post)
+                this.axios.post('http://localhost:4000/api/alert/create/', this.post)
                 .then(function (response) {
                     currentObj.output = response.data;
                 })

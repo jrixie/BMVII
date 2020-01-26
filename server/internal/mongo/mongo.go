@@ -11,6 +11,7 @@ import (
 
 var Client mongo.Client
 
+// init initializes the package when loaded.
 func init() {
 	lClient, err := mongo.NewClient(options.Client().ApplyURI(
 		"mongodb+srv://dav-jordan:CSbtfu2021@mtg-go-tgpc5.mongodb.net/test?retryWrites=true&w=majority"))
@@ -26,6 +27,7 @@ func init() {
 	Client = *lClient
 }
 
+// Close closes the connection to the DB.
 func Close() {
 	ctx, err := context.WithTimeout(context.Background(), 5*time.Second)
 	if err != nil {
