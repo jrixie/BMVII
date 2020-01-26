@@ -2,13 +2,10 @@ package alert
 
 import (
 	"context"
-<<<<<<< Updated upstream
 	"fmt"
 	"net/http"
-=======
 	"encoding/json"
 	"io/ioutil"
->>>>>>> Stashed changes
 	"time"
 
 	"boilermakevii/api/internal/mongo"
