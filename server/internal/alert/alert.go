@@ -2,9 +2,12 @@ package alert
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"boilermakevii/api/internal/mongo"
+
+	"net/http"
 
 	"github.com/MagicTheGathering/mtg-sdk-go"
 	log "github.com/sirupsen/logrus"
@@ -19,6 +22,13 @@ type Trigger struct {
 	Price     float32        `bson:"price"`
 	Condition PriceCondition `bson:"condition"`
 	Threshold float32        `bson:"threshold"`
+}
+type PostedTrigger struct {
+	Email     string         `json:"email"`
+	CardID    mtg.CardId     `json:"cardId"`
+	Price     float32        `json:"price"`
+	Condition PriceCondition `json:"condition"`
+	Threshold float32        `json:"threshold"`
 }
 
 // PriceCondition is a data type storing what condition to alert on.
@@ -94,7 +104,7 @@ func getAllEntries() ([]Trigger, error) {
 	return entries, nil
 }
 
-func (t *Trigger) InsertTrigger() {
+func (t *Trigger) insertTrigger() {
 	collection := mongo.Client.Database("mtg").Collection("alerts")
 
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
@@ -103,4 +113,15 @@ func (t *Trigger) InsertTrigger() {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+func CreateTrigger(w http.ResponseWriter, r *http.Request) {
+	// POST request
+	email := r.FormValue("email")
+	cardId := r.FormValue("cardId")
+	price := r.FormValue("price")
+	condition := r.FormValue("condition")
+	threshold := r.FormValue("threshold")
+
+	fmt.Println(email, cardId, price, condition, threshold)
 }
