@@ -1,8 +1,11 @@
 package alert
 
 import (
+	"boilermakevii/api/internal/mtgjson"
 	"context"
 	"time"
+
+	"github.com/jasonlvhit/gocron"
 
 	"boilermakevii/api/internal/mongo"
 
@@ -16,9 +19,9 @@ import (
 type Trigger struct {
 	Email     string         `bson:"email"`
 	CardID    mtg.CardId     `bson:"cardId"`
-	Price     float32        `bson:"price"`
+	Price     float64        `bson:"price"`
 	Condition PriceCondition `bson:"condition"`
-	Threshold float32        `bson:"threshold"`
+	Threshold float64        `bson:"threshold"`
 }
 
 // PriceCondition is a data type storing what condition to alert on.
@@ -28,6 +31,10 @@ const (
 	GreaterThan PriceCondition = 0
 	LessThan    PriceCondition = 1
 )
+
+func init() {
+	gocron.Every(1).Day().At("05:05").Do(UpdateTriggers)
+}
 
 // UpdateTriggers checks all entries from the DB, updates price information,
 // and alerts users if their conditions have been met.
@@ -40,12 +47,14 @@ func UpdateTriggers() {
 	}
 
 	for _, entry := range entries {
-		// TODO: Update price
+		entry.Price = mtgjson.CardPrices[entry.CardID].Price
 
 		if entry.hasMetCondition() {
 			entry.alertUser()
 		}
 	}
+
+	// TODO: Update in DB
 }
 
 // HasMetCondition returns true when a card price meets a

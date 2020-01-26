@@ -4,9 +4,12 @@ import (
 	"net/http"
 	"time"
 
+	"boilermakevii/api/internal/alert"
 	"boilermakevii/api/internal/mongo"
+	"boilermakevii/api/internal/mtgjson"
 	"boilermakevii/api/internal/router"
 
+	"github.com/jasonlvhit/gocron"
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,6 +31,12 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
+
+	gocron.Start()
+
+	// Initial updating
+	mtgjson.GetPrices()
+	alert.UpdateTriggers()
 
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalln(err)
