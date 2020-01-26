@@ -2,8 +2,13 @@ package alert
 
 import (
 	"context"
+<<<<<<< Updated upstream
 	"fmt"
 	"net/http"
+=======
+	"encoding/json"
+	"io/ioutil"
+>>>>>>> Stashed changes
 	"time"
 
 	"boilermakevii/api/internal/mongo"
@@ -124,13 +129,31 @@ func (t *Trigger) insertTrigger() {
 	}
 }
 
+// Trigger received from frontend
+type ClientTrigger struct {
+	Email          string  `json:"email"`
+	CardName       string  `json:"cardName"`
+	PriceCondition int     `json:"priceCondition"`
+	PriceThreshold float32 `json:"priceThreshold"`
+}
+
 // CreateTrigger handles a request to create a trigger in the DB.
 func CreateTrigger(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	cardId := r.FormValue("cardId")
-	price := r.FormValue("price")
-	condition := r.FormValue("condition")
-	threshold := r.FormValue("threshold")
+	defer r.Body.Close()
 
-	fmt.Println(email, cardId, price, condition, threshold)
+	data, _ := ioutil.ReadAll(r.Body)
+
+	var trigger ClientTrigger
+	json.Unmarshal(data, &trigger)
+
+	arr, err := mtg.NewQuery().Where(mtg.CardName, trigger.CardName).All()
+	var card mtg.Card
+	if len(arr) != 0 && err == nil {
+		card = *arr[0]
+	}
+
+	t := Trigger{Email: trigger.Email, CardID: card.Id,
+		Price:     0,
+		Condition: PriceCondition(trigger.PriceCondition), Threshold: trigger.PriceThreshold}
+	t.insertTrigger()
 }
