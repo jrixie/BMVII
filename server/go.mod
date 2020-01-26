@@ -10,6 +10,7 @@ require (
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/jasonlvhit/gocron v0.0.0-20191228163020-98b59b546dee
+	github.com/jordan-wright/email v0.0.0-20200121133829-a0b5c5b58bb6
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.4.2

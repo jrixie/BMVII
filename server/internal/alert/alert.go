@@ -3,9 +3,14 @@ package alert
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/smtp"
+	"os"
 	"time"
+
+	"github.com/jordan-wright/email"
 
 	"boilermakevii/api/internal/mongo"
 	"boilermakevii/api/internal/mtgjson"
@@ -34,8 +39,14 @@ const (
 	LessThan    PriceCondition = 1
 )
 
+var alertEmail string
+var alertPass string
+
 // init initializes the package when loaded.
 func init() {
+	alertEmail = os.Getenv("NOTIF_EMAIL")
+	alertPass = os.Getenv("NOTIF_PASS")
+
 	gocron.Every(30).Seconds().Do(UpdateTriggers)
 }
 
@@ -43,6 +54,7 @@ func init() {
 // and alerts users if their conditions have been met.
 func UpdateTriggers() {
 	var entries []Trigger
+	numEmails := 0
 
 	entries, err := getAllEntries()
 	if err != nil {
@@ -54,8 +66,11 @@ func UpdateTriggers() {
 
 		if entry.hasMetCondition() {
 			entry.alertUser()
+			numEmails++
 		}
 	}
+
+	log.Info(fmt.Sprintf("UpdateTriggers: Sent %d emails.", numEmails))
 
 	// TODO: Update in DB
 }
@@ -75,7 +90,31 @@ func (t *Trigger) hasMetCondition() bool {
 
 // AlertUser alerts the user for a price alert.
 func (t *Trigger) alertUser() {
-	// TODO: Email user
+	cardData, err := t.CardID.Fetch()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	var condition string
+	switch t.Condition {
+	case GreaterThan:
+		condition = "rose"
+	case LessThan:
+		condition = "dropped"
+	}
+
+	emailBody := fmt.Sprintf("The price on %s has %s to your threshold of $%.2f.\nThe price is now $%.2f", cardData.Name, condition, t.Threshold, t.Price)
+
+	e := email.NewEmail()
+	e.From = fmt.Sprintf("MTGDrop <%s>", alertEmail)
+	e.To = []string{t.Email}
+	e.Subject = "MTGDrop: Price Alert"
+	e.Text = []byte(emailBody)
+	if err := e.Send("smtp.gmail.com:587", smtp.PlainAuth("", alertEmail, alertPass, "smtp.gmail.com")); err != nil {
+		log.Error(err)
+		log.Error("Failed to send email")
+	}
 }
 
 // getAllEntries returns all Trigger entries from the DB.
@@ -132,7 +171,6 @@ func CreateTrigger(w http.ResponseWriter, r *http.Request) {
 	data, _ := ioutil.ReadAll(r.Body)
 
 	var trigger ClientTrigger
-	log.Info(data)
 	if err := json.Unmarshal(data, &trigger); err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
