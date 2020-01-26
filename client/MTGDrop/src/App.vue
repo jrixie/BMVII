@@ -1,6 +1,15 @@
 <template>
   <div id="app">
-    <input v-model="cname">
+    <p v-if="errors.length">
+      <b>Please correct the following error(s):</b>
+      <ul>
+        <li v-for="error in errors" v-bind:key="error.message">{{ error.message }}</li>
+      </ul>
+    </p>
+
+    <input v-model="email" placeholder="email">
+
+    <input v-model="cname" placeholder="cardname">
     
     <!-- Have default option -->
     <select v-model="ccond">
@@ -12,7 +21,15 @@
       <option>Damaged</option>
     </select>
 
-    <money v-model="price" v-bind="money"></money> 
+    <select v-model="ineq">
+      <option v-for="option in ineqOptions" v-bind:key="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+
+    <money v-model="setprice" v-bind="money"></money> 
+
+    <button v-on:click="formSubmit">Submit</button>
   </div>
 </template>
 
@@ -27,17 +44,57 @@ export default {
   },
   data() {
     return {
+      post: {},
       price: 0.00,
-        money: {
-          decimal: '.',
-          thousands: ',',
-          prefix: '$ ',
-          suffix: '',
-          precision: 2,
-          masked: false
-        }
+      money: {
+        decimal: '.',
+        thousands: ',',
+        prefix: '$ ',
+        suffix: '',
+        precision: 2,
+        masked: false
+      },
+      email: '',
+      cname: '',
+      ccond: '',
+      ineq: '',
+      setprice: '',
+      ineqOptions: [
+        { text: '>', value: '0' },
+        { text: '<', value: '1' },
+      ],
+      errors: [],
+      reg: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/
     }
-  }
+  },
+  methods: {
+            formSubmit(e) {
+              e.preventDefault();
+              this.errors = [];
+              if (!this.validEmail(this.email)) {
+                this.errors.push({message: 'Valid email required.'});
+              } else {
+                let currentObj = this;
+                this.post = {
+                    email: this.email,
+                    cname: this.cname,
+                    ccond: this.ccond,
+                    ineq: this.ineq,
+                    setprice: this.setprice
+                };
+                this.axios.post('http://localhost:8000/yourPostApi', this.post)
+                .then(function (response) {
+                    currentObj.output = response.data;
+                })
+                .catch(function (error) {
+                    currentObj.output = error;
+                });
+              }
+            },
+            validEmail(email) {
+              return this.reg.test(email);
+           }
+      }
 }
 </script>
 
