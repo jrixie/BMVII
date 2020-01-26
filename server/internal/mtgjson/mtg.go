@@ -13,10 +13,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// client is the HTTP client used to make requests.
 var client *http.Client
 
+// CardPrices is a mapping of card IDs to CardPrice objects.
 var CardPrices map[mtg.CardId]CardPrice
 
+// init initializes the package when loaded.
 func init() {
 	client = &http.Client{
 		Timeout: 30 * time.Second,
@@ -25,11 +28,13 @@ func init() {
 	gocron.Every(1).Day().At("05:00").Do(GetPrices)
 }
 
+// CardPrice defines a data structure for card prices.
 type CardPrice struct {
 	CardID mtg.CardId
 	Price  float64
 }
 
+// GetPrices updates the CardPrices map with new pricing data.
 func GetPrices() {
 	log.Info("GetPrices: Getting price data...")
 	CardPrices = make(map[mtg.CardId]CardPrice, 0)
