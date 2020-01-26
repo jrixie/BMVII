@@ -1,6 +1,6 @@
 build:
-	docker build -t mtgdrop-server -f ./server/prod.dockerfile ./server
+	docker-compose -p mtgdrop build
 
 run:
-	docker run -p 4000:4000 mtgdrop-server
+	docker-compose -p mtgdrop up
 

@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -13,8 +15,14 @@ var Client mongo.Client
 
 // init initializes the package when loaded.
 func init() {
+	dbUser := os.Getenv("MONGO_USER")
+	dbPassword := os.Getenv("MONGO_PASS")
+
 	lClient, err := mongo.NewClient(options.Client().ApplyURI(
-		"mongodb+srv://dav-jordan:CSbtfu2021@mtg-go-tgpc5.mongodb.net/test?retryWrites=true&w=majority"))
+		fmt.Sprintf(
+			"mongodb+srv://%s:%s@mtg-go-tgpc5.mongodb.net/test?retryWrites=true&w=majority",
+			dbUser,
+			dbPassword)))
 	if err != nil {
 		log.Fatal(err)
 	}
