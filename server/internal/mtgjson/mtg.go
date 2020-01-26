@@ -25,7 +25,7 @@ func init() {
 		Timeout: 30 * time.Second,
 	}
 
-	gocron.Every(1).Day().At("05:00").Do(GetPrices)
+	gocron.Every(1).Day().At("22:30").Do(GetPrices)
 }
 
 // CardPrice defines a data structure for card prices.
@@ -52,7 +52,14 @@ func GetPrices() {
 		log.Fatal(err)
 	}
 
-	dateString := strings.Split(time.Now().AddDate(0, 0, -1).String(), " ")[0]
+	var dateString string
+	if time.Now().Hour() < 23 {
+		// If the day has changed, but the time is before 4 (when prices are updated),
+		// go back to the previous day's prices
+		dateString = strings.Split(time.Now().AddDate(0, 0, -1).String(), " ")[0]
+	} else {
+		dateString = strings.Split(time.Now().String(), " ")[0]
+	}
 
 	for id, obj := range rawData {
 		cardType := obj.(map[string]interface{})["prices"].(map[string]interface{})["paper"]

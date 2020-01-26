@@ -33,6 +33,7 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
+	gocron.ChangeLoc(time.UTC)
 	gocron.Start()
 
 	// Initial updating
