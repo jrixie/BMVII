@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"boilermakevii/api/internal/alert"
 	"boilermakevii/api/internal/test"
 
 	"github.com/gorilla/mux"
@@ -73,6 +74,17 @@ var apiSpec = []Service{
 				"GET",
 				"/",
 				test.HelloWorld,
+			},
+		},
+	},
+	{
+		"alert",
+		[]Route{
+			{
+				"CreateTrigger",
+				"POST",
+				"/create",
+				alert.CreateTrigger,
 			},
 		},
 	},
