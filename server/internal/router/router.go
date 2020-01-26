@@ -30,7 +30,7 @@ func NewRouter() (router *mux.Router) {
 
 			router.
 				Name(route.Name).
-				Methods(route.Method).
+				Methods("OPTIONS", route.Method).
 				Path(path).
 				Handler(handler)
 

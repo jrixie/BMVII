@@ -177,6 +177,7 @@ type ClientTrigger struct {
 
 // CreateTrigger handles a request to create a trigger in the DB.
 func CreateTrigger(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
 	defer r.Body.Close()
 	data, _ := ioutil.ReadAll(r.Body)
 
@@ -196,11 +197,18 @@ func CreateTrigger(w http.ResponseWriter, r *http.Request) {
 	var card mtg.Card
 	card = *arr[0]
 
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
+
 	t := Trigger{
 		Email:     trigger.Email,
 		CardID:    card.Id,
 		Condition: PriceCondition(trigger.PriceCondition),
 		Threshold: trigger.PriceThreshold,
 	}
+
 	t.insertTrigger()
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }

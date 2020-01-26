@@ -28,7 +28,7 @@
 
       <select v-model="ineq" class="entry">
         <option disabled value="">Greater Than or Less Than</option>
-        <option v-for="option in ineqOptions" v-bind:key="option.value">
+        <option v-for="option in ineqOptions" v-bind:key="option.value" v-bind:value="option.value">
           {{ option.text }}
         </option>
       </select>
@@ -69,8 +69,8 @@ export default {
       ineq: '',
       setprice: '',
       ineqOptions: [
-        { text: '>', value: '0' },
-        { text: '<', value: '1' },
+        { text: '>', value: 0 },
+        { text: '<', value: 1 },
       ],
       validEmail: true,
       reg: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/
@@ -86,12 +86,12 @@ export default {
                 let currentObj = this;
                 this.post = {
                     email: this.email,
-                    cname: this.cname,
-                    ccond: this.ccond,
-                    ineq: this.ineq,
-                    setprice: this.setprice
+                    cardName: this.cname,
+                    cardCondition: this.ccond,
+                    priceCondition: this.ineq,
+                    priceThreshold: this.setprice
                 };
-                this.axios.post('http://localhost:8000/yourPostApi', this.post)
+                this.axios.post('http://mtgdrop.tech:4000' + '/api/alert/create/', this.post)
                 .then(function (response) {
                     currentObj.output = response.data;
                 })
