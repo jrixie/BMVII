@@ -1,40 +1,49 @@
 <template>
   <div id="app">
-    <p v-if="errors.length">
-      <b>Please correct the following error(s):</b>
-      <ul>
-        <li v-for="error in errors" v-bind:key="error.message">{{ error.message }}</li>
-      </ul>
+    <h1>
+      MTG Price Alerts
+    </h1>
+
+    <p v-if="!validEmail">
+      <b>Please enter a valid email</b>
     </p>
 
-    <input v-model="email" placeholder="email">
+    <div class = "fields">
+      <input v-model="email" placeholder="Email" class="entry">
 
-    <input v-model="cname" placeholder="cardname">
-    
-    <!-- Have default option -->
-    <select v-model="ccond">
-      <option disabled value="">Select lowest preferred condition</option>
-      <option>Near Mint</option>
-      <option>Lightly Played</option>
-      <option>Moderately Played</option>
-      <option>Heavily Played</option>
-      <option>Damaged</option>
-    </select>
+      <input v-model="cname" placeholder="Card Name" class="entry">
+      
 
-    <select v-model="ineq">
-      <option v-for="option in ineqOptions" v-bind:key="option.value" v-bind:value="option.value">
-        {{ option.text }}
-      </option>
-    </select>
+      <!-- Have default option -->
+      <select v-model="ccond" class="entry">
+        <option disabled value="">Select Lowest Preferred Condition</option>
+        <option>Near Mint</option>
+        <option>Lightly Played</option>
+        <option>Moderately Played</option>
+        <option>Heavily Played</option>
+        <option>Damaged</option>
+      </select>
 
-    <money v-model="setprice" v-bind="money"></money> 
 
-    <button v-on:click="formSubmit">Submit</button>
+
+      <select v-model="ineq" class="entry">
+        <option disabled value="">Greater Than or Less Than</option>
+        <option v-for="option in ineqOptions" v-bind:key="option.value">
+          {{ option.text }}
+        </option>
+      </select>
+
+
+      <money v-model="setprice" v-bind="money" class="entry"></money>
+
+      <div><button v-on:click="formSubmit" style="width:100px;margin:10px;">Submit</button></div>
+
+      <img src="./assets/mtglogo.png" style="padding-top:50px;">
+    </div>
   </div>
 </template>
 
 <script>
-
 import {Money} from 'v-money'
 
 export default {
@@ -60,29 +69,29 @@ export default {
       ineq: '',
       setprice: '',
       ineqOptions: [
-        { text: '>', value: 0 },
-        { text: '<', value: 1 },
+        { text: '>', value: '0' },
+        { text: '<', value: '1' },
       ],
-      errors: [],
+      validEmail: true,
       reg: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/
     }
   },
   methods: {
             formSubmit(e) {
               e.preventDefault();
-              this.errors = [];
-              if (!this.validEmail(this.email)) {
-                this.errors.push({message: 'Valid email required.'});
+              this.validEmail = true;
+              if (!this.checkEmail(this.email)) {
+                this.validEmail = false;
               } else {
                 let currentObj = this;
                 this.post = {
                     email: this.email,
-                    cardName: this.cname,
-                    cardCondition: this.ccond,
-                    priceCondition: this.ineq,
-                    priceThreshold: this.setprice
+                    cname: this.cname,
+                    ccond: this.ccond,
+                    ineq: this.ineq,
+                    setprice: this.setprice
                 };
-                this.axios.post(process.env.VUE_APP_API_HOST + '/api/alert/create/', this.post)
+                this.axios.post('http://localhost:8000/yourPostApi', this.post)
                 .then(function (response) {
                     currentObj.output = response.data;
                 })
@@ -91,20 +100,50 @@ export default {
                 });
               }
             },
-            validEmail(email) {
+            checkEmail(email) {
               return this.reg.test(email);
            }
       }
 }
 </script>
 
-<style>
+<style lang="scss">
+@font-face {
+    font-family: 'Beleren';
+    src: url(assets/Beleren2016-Bold.ttf);
+}
+
+$fontColor: white;
+$backgroundColor: #384048 ;
+$borderSize: 200px;
+
+* {
+      margin: 0;
+  }
+
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  height: 1000px;
+  font-family: Beleren, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  color: $fontColor;
+  background-color: $backgroundColor;
+  //#2c3e50;
+
+  .fields {
+    text-align:center;
+    margin: auto;
+    border-radius: 25px;
+    background: black;
+    padding: 20px;
+    width: 35%;
+    height: 250px;
+  }
+
+  .entry {
+    width: 300px;
+    margin:10px;
+  }
 }
 </style>
