@@ -26,7 +26,6 @@ import (
 type Trigger struct {
 	Email     string         `bson:"email"`
 	CardID    mtg.CardId     `bson:"cardId"`
-	Price     float64        `bson:"price"`
 	Condition PriceCondition `bson:"condition"`
 	Threshold float64        `bson:"threshold"`
 }
@@ -47,6 +46,7 @@ func init() {
 	alertEmail = os.Getenv("NOTIF_EMAIL")
 	alertPass = os.Getenv("NOTIF_PASS")
 
+	// TODO: Check if email was sent and don't send again
 	gocron.Every(30).Seconds().Do(UpdateTriggers)
 }
 
@@ -62,34 +62,33 @@ func UpdateTriggers() {
 	}
 
 	for _, entry := range entries {
-		entry.Price = mtgjson.CardPrices[entry.CardID].Price
+		price := mtgjson.CardPrices[entry.CardID].Price
 
-		if entry.hasMetCondition() {
-			entry.alertUser()
+		if entry.hasMetCondition(price) {
+			entry.alertUser(price)
+			entry.removeTrigger()
 			numEmails++
 		}
 	}
 
 	log.Info(fmt.Sprintf("UpdateTriggers: Sent %d emails.", numEmails))
-
-	// TODO: Update in DB
 }
 
 // HasMetCondition returns true when a card price meets a
 // user threshold, false otherwise.
-func (t *Trigger) hasMetCondition() bool {
+func (t *Trigger) hasMetCondition(price float64) bool {
 	switch t.Condition {
 	case GreaterThan:
-		return t.Price > t.Threshold
+		return price > t.Threshold
 	case LessThan:
-		return t.Price < t.Threshold
+		return price < t.Threshold
 	default:
 		return false
 	}
 }
 
 // AlertUser alerts the user for a price alert.
-func (t *Trigger) alertUser() {
+func (t *Trigger) alertUser(currPrice float64) {
 	cardData, err := t.CardID.Fetch()
 	if err != nil {
 		log.Error(err)
@@ -104,7 +103,7 @@ func (t *Trigger) alertUser() {
 		condition = "dropped"
 	}
 
-	emailBody := fmt.Sprintf("The price on %s has %s to your threshold of $%.2f.\nThe price is now $%.2f", cardData.Name, condition, t.Threshold, t.Price)
+	emailBody := fmt.Sprintf("The price on %s has %s to your threshold of $%.2f.\nThe price is now $%.2f", cardData.Name, condition, t.Threshold, currPrice)
 
 	e := email.NewEmail()
 	e.From = fmt.Sprintf("MTGDrop <%s>", alertEmail)
@@ -157,6 +156,17 @@ func (t *Trigger) insertTrigger() {
 	}
 }
 
+// removeTrigger removes a Trigger from the DB.
+func (t *Trigger) removeTrigger() {
+	collection := mongo.Client.Database("mtg").Collection("alerts")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+
+	_, err := collection.DeleteOne(ctx, t)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // Trigger received from frontend
 type ClientTrigger struct {
 	Email          string  `json:"email"`
@@ -189,7 +199,6 @@ func CreateTrigger(w http.ResponseWriter, r *http.Request) {
 	t := Trigger{
 		Email:     trigger.Email,
 		CardID:    card.Id,
-		Price:     0,
 		Condition: PriceCondition(trigger.PriceCondition),
 		Threshold: trigger.PriceThreshold,
 	}
